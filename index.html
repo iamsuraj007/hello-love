@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>I'm Sorry — A Sweet Apology</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg1:#ff9a9e;
+      --bg2:#fad0c4;
+      --card:#ffffffcc;
+      --accent:#ff6b81;
+      --muted:#6b6b6b;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Montserrat, system-ui, -apple-system, 'Segoe UI', Roboto;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      display:grid;
+      place-items:center;
+      padding:16px;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .hearts {
+      position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0;
+    }
+    .hearts i{
+      position:absolute; font-style:normal; width:24px; height:24px; color:var(--accent); opacity:.85; filter:drop-shadow(0 6px 12px rgba(0,0,0,.08));
+      animation:float 8s linear infinite;
+    }
+    @keyframes float{
+      0%{transform:translateY(100vh) translateX(0) rotate(0deg); opacity:0}
+      10%{opacity:1}
+      100%{transform:translateY(-20vh) translateX(80px) rotate(360deg); opacity:0}
+    }
+
+    .card{
+      position:relative;
+      z-index:1;
+      width:100%;
+      max-width:500px;
+      background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.88));
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 8px 24px rgba(14,14,22,0.12);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      align-items:center;
+      overflow:hidden;
+    }
+
+    .headline{
+      display:flex; align-items:center; gap:12px;
+    }
+    .logo{
+      width:56px; height:56px; border-radius:14px; background:linear-gradient(180deg,#fff, #ffe6ef);
+      display:grid; place-items:center; font-family:Pacifico; color:var(--accent); font-size:24px; box-shadow:0 6px 16px rgba(255,107,129,0.12);
+    }
+    h1{font-family:Pacifico; margin:0; font-size:28px; color:#3b3b3b}
+    p.lead{margin:4px 0 0; color:var(--muted); font-size:14px}
+
+    .message-box{
+      background:rgba(255,255,255,0.7); border-radius:12px; padding:14px; min-height:140px; font-size:16px; color:#333; line-height:1.45;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+      position:relative; overflow:hidden; width:100%;
+    }
+    .typing{white-space:pre-wrap; font-family:inherit}
+    .cursor{display:inline-block; width:2px; height:1em; background:var(--accent); margin-left:4px; animation:blink 1s steps(2) infinite}
+    @keyframes blink{50%{opacity:0}}
+
+    .controls{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; width:100%}
+    button{cursor:pointer; border:0; padding:10px 14px; border-radius:10px; font-weight:600; font-size:14px; flex:1 1 auto; min-width:45%}
+    .btn-soft{background:transparent; color:var(--accent); border:1px solid rgba(255,107,129,0.18)}
+    .btn-strong{background:var(--accent); color:white; box-shadow:0 6px 16px rgba(255,107,129,0.18)}
+
+    .heart-big{font-size:44px; color:var(--accent); animation:pulse 1200ms ease-in-out infinite}
+    @keyframes pulse{0%{transform:scale(.92)}50%{transform:scale(1.08)}100%{transform:scale(.92)}}
+    .hint{color:var(--muted); font-size:12px; text-align:center}
+
+    footer.small{font-size:10px; color:var(--muted); text-align:center; margin-top:4px}
+  </style>
+</head>
+<body>
+  <div class="hearts" aria-hidden="true"></div>
+
+  <article class="card" role="main">
+    <div class="headline">
+      <div class="logo">♥</div>
+      <div>
+        <h1>I'm Sorry</h1>
+        <p class="lead">A heartfelt apology for the one I love palak</p>
+      </div>
+    </div>
+
+    <div class="message-box" id="messageBox" aria-live="polite">
+      <div class="typing" id="typing"></div><span class="cursor" id="cursor"></span>
+    </div>
+
+    <div class="controls">
+      <button class="btn-strong" id="reveal">Reveal</button>
+      <button class="btn-soft" id="regenerate">New</button>
+      <button class="btn-soft" id="copy">Copy</button>
+      <button class="btn-soft" id="download">Download</button>
+    </div>
+
+    <div class="heart-big">❤</div>
+    <p class="hint" id="toneTitle">Sincere & Gentle</p>
+    <footer class="small">Made with ❤️ for my sweet baby palak.</footer>
+  </article>
+
+  <script>
+    const templates = [
+`Hey love, I'm really sorry for what I said. I hate that I upset you. You mean the world to me and I never want to be the reason you cry. I will listen, learn, and do better — starting now. Can we talk? I miss you.`,
+`My dearest, I messed up and I take full responsibility. I was thoughtless and I'm truly sorry. You deserve kindness, and I'll make sure my actions match my words. Please let me make it up to you. Always yours,`,
+`I owe you an apology. I didn't think before I spoke, and that was wrong. Thank you for being patient with me. If you'll let me, I want to show you how much I care. Can I hold you tonight?`,
+`I'm sorry. I love you. I won't let this happen again.`,
+`Okay, I admit it — I was being a doofus. Sorry! Can I bribe you with dessert and a movie night?`
+];
+
+    const tones = ['Sincere & Gentle','Humble & Responsible','Remorseful & Warm','Short & Sweet','Playful & Soft'];
+    const typingEl = document.getElementById('typing');
+    const cursor = document.getElementById('cursor');
+    const revealBtn = document.getElementById('reveal');
+    const regenerateBtn = document.getElementById('regenerate');
+    const copyBtn = document.getElementById('copy');
+    const downloadBtn = document.getElementById('download');
+    const toneTitle = document.getElementById('toneTitle');
+
+    let currentIndex = 0;
+    let charIndex = 0;
+    let typingInterval = null;
+
+    function typeMessage(text){
+      clearInterval(typingInterval);
+      typingEl.textContent = '';
+      charIndex = 0;
+      typingInterval = setInterval(()=>{
+        if(charIndex >= text.length){ clearInterval(typingInterval); return; }
+        typingEl.textContent += text[charIndex];
+        charIndex++;
+      }, 20);
+    }
+
+    function setMessageByIndex(i){
+      currentIndex = i;
+      toneTitle.textContent = tones[i];
+      typeMessage(templates[i]);
+    }
+
+    revealBtn.addEventListener('click', ()=> setMessageByIndex(currentIndex));
+    regenerateBtn.addEventListener('click', ()=> setMessageByIndex(Math.floor(Math.random()*templates.length)));
+    copyBtn.addEventListener('click', async ()=>{
+      try{
+        await navigator.clipboard.writeText(templates[currentIndex]);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(()=>copyBtn.textContent = 'Copy',1400);
+      }catch(e){
+        copyBtn.textContent = 'Copy N/A';
+        setTimeout(()=>copyBtn.textContent='Copy',1400);
+      }
+    });
+    downloadBtn.addEventListener('click', ()=>{
+      const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'sorry.html';
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    setMessageByIndex(0);
+
+    const heartsRoot = document.querySelector('.hearts');
+    function makeHeart(){
+      const i = document.createElement('i');
+      i.textContent = '❤';
+      i.style.left = (Math.random()*100) + '%';
+      i.style.fontSize = (Math.random()*20 + 14)+'px';
+      i.style.opacity = (Math.random()*0.5 + 0.4).toFixed(2);
+      i.style.animationDuration = (6 + Math.random()*8)+'s';
+      heartsRoot.appendChild(i);
+      setTimeout(()=> i.remove(), 16000);
+    }
+    setInterval(makeHeart, 400);
+  </script>
+</body>
+</html>
